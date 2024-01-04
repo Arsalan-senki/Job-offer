@@ -1,0 +1,59 @@
+{% include 'navbar.html' %}
+{% load static %}
+
+<head>
+    <link rel="stylesheet" href="{% static 'styles/main.css' %}">
+    <style>
+        .home-container {
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <a href="{% url 'create-Company' %}">create Company</a>
+        <a href="{% url 'create-commercials' %}">Create Commercial</a> <!-- Add this line -->
+    </div>
+    <hr>
+    
+    <div class="home-container">
+        <div>
+            <h3>Browse Topics</h3>
+            <hr>
+            <div>
+                <a href="{% url 'home-page' %}">ALL</a>
+    
+            </div>
+            {% for city in cities %}
+            <div>
+                <a href="{% url 'home-page' %}?q={{ city }}">{{ city }}</a>
+            </div>
+            {% endfor %}
+        </div>
+    
+    
+        <div>
+            {% for company in companies %}
+    
+            <div>
+                {% if request.user == company.user %}
+    
+                <a href="{% url 'update-company' company.id %}">edit</a>
+                <a href="{% url 'delete-company' company.id %}">Delete</a>
+                {% endif %}
+    
+    
+                <a href="{% url 'user-profile' company.user.id %}">@{{company.user.username}}</a>
+    
+                <h5>{{company.id}} -- <a href="/company/{{company.id}}">{{company.name}}</a></h5>
+                <h5>{{company.email}}</h5>
+                <h5>{{company.city}}</h5>
+                <!-- <h5>{{job.description}}</h5> -->
+                <hr>
+            </div>
+            {% endfor %}
+    
+        </div>
+    </div>
+</body>

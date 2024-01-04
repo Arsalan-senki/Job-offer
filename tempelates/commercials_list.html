@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- HOME -->
+<section class="section-hero overlay inner-page bg-image" style="background-image: url('../static/images/hero_1.jpg');"
+  id="home-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-7">
+        <h1 class="text-white font-weight-bold">Jobs</h1>
+        <div class="custom-breadcrumbs">
+          <a href="{% url 'website:home' %}">Home</a> <span class="mx-2 slash">/</span>
+          <span class="text-white"><strong>Jobs</strong></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ajax_listing_paginattion" class="site-section services-section bg-light block__62849" id="next-section">
+  <div class="container">
+
+    <div class="row">
+
+
+      {% for com in commercials %}
+      <div class="col-6 col-md-6 col-lg-4 mb-4 mb-lg-5">
+        <a href="{% url 'website:home' %}" class="block__16443 min-h text-center d-block">
+          <!-- <span class="custom-icon mx-auto"><span class="icon-magnet d-block"></span></span> -->
+          <h3>{{com.subject}}</h3>
+          {% if com.company %}
+            <ul class="job-listing-meta list-unstyled pl-0 mb-0">
+              <li class="badge badge-secondary menu-fix "> {{com.company.city.name}}</li>
+            </ul>
+          {% endif %}
+          <hr class="border-3">
+          <p>{{ com.description | safe | truncatechars:150}}</p>
+            <hr class="border-3">
+            <p>requirements:</p>
+            {% for talent in com.talents %}
+              <span style="color:#2a2b2d; font-size:0.8rem"> - {{talent}}</span><br>
+            {% endfor %}
+
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+</body>
+
+</html>

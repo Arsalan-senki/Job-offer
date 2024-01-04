@@ -1,0 +1,64 @@
+{% block content %}
+<style>
+  .content-container {
+    display: flex;
+  }
+
+  .search-bar {
+    flex: 1;
+    margin-right: 20px;  /* Add some margin for separation */
+  }
+
+  .commercial-list {
+    flex: 3;
+  }
+
+  /* Add any additional styling as needed */
+</style>
+
+  <div class="content-container">
+    <div class="search-bar">
+      <form method="get" action="{% url 'list-commercials' %}">
+        <input type="text" name="q" placeholder="Search" value="{{ request.GET.q }}">
+        <button type="submit">Search</button>
+      </form>
+    
+      <h3>Browse jobs</h3>
+      <hr>
+      <div>
+        <a href="{% url 'list-commercials' %}">ALL</a>
+      </div>
+      {% for title in titles %}
+        <div>
+          <a href="{% url 'list-commercials' %}?q={{ title.subject }}">{{ title.subject }}</a>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="commercial-list">
+      <h2>List of Commercials</h2>
+      {% for commercial in commercials %}
+          <div>
+              <h3>{{ commercial.subject }}</h3>
+              <p>{{ commercial.description }}</p>
+              <p>Date: {{ commercial.date }}</p>
+              <p>Created by: {{ commercial.user.username }}</p>
+              
+              {% if commercial.companies.all %}
+              <p>Companies:</p>
+              <ul>
+                  {% for company in commercial.companies.all %}
+                      <li>{{ company.name }}</li>
+                      <!-- Add other details related to the company if needed -->
+                  {% endfor %}
+              </ul>
+          {% else %}
+              <p>No associated companies</p>
+          {% endif %}
+  
+              <hr>
+          </div>
+      {% endfor %}
+  </div>
+  </div>
+{% endblock %}

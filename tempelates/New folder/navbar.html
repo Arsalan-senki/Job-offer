@@ -1,0 +1,23 @@
+<h1></h1>
+<hr>
+<form method="GET" action="{% url 'home-page' %}">
+    <input type="text" name="q" placeholder="Search" />
+
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li></li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+</form>
+    <a href="{% url 'list-commercials' %}">view job commercials</a>
+    {% if request.user.is_authenticated %}
+        <p>Hello {{request.user}}</p>
+        <a href="{% url 'create-commercials' %}">submit yor commercial</a>
+        <a href="{% url 'logout' %}">Logout</a>
+    {% else %}
+    <a href="{% url 'login' %}">Login</a>
+    <a href="{% url 'user-register' %}">Register</a>
+    {% endif %}

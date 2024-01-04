@@ -1,0 +1,7 @@
+<h1>Employee Profile</h1>
+
+<form method="post" action="{% url 'employee-registration' user_id=user_id %}">
+    {% csrf_token %}
+    {{ employee_form.as_p }}
+    <button type="submit">Continue</button>
+</form>
