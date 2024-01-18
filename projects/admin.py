@@ -9,6 +9,6 @@ from .models import *
 # admin.site.register(Employer)
 # admin.site.register(Employee)
 admin.site.register(Company)
-admin.site.register(JobCommercial)
-admin.site.register(Message)
+admin.site.register(Job)
 admin.site.register(Cities)
+admin.site.register(ApplyJob)

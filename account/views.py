@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect , get_object_or_404
 from django.urls import reverse, reverse_lazy
 
 from account.forms import *
-from projects.premissions import user_is_employee 
+from projects.premissions import if_user_is_employee 
 # Create your views here.
 
 

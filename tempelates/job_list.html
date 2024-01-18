@@ -24,21 +24,24 @@
     <div class="row">
 
 
-      {% for com in commercials %}
+      {% for job in page_obj %}
       <div class="col-6 col-md-6 col-lg-4 mb-4 mb-lg-5">
-        <a href="{% url 'website:home' %}" class="block__16443 min-h text-center d-block">
+        <a href="{% url 'website:job-single' pk=job.id %}" class="block__16443 min-h text-center d-block">
           <!-- <span class="custom-icon mx-auto"><span class="icon-magnet d-block"></span></span> -->
-          <h3>{{com.subject}}</h3>
-          {% if com.company %}
+          <h3>{{job.subject}}</h3>
+          {% if job.company %}
             <ul class="job-listing-meta list-unstyled pl-0 mb-0">
-              <li class="badge badge-secondary menu-fix "> {{com.company.city.name}}</li>
+              <li class="badge badge-secondary menu-fix "> {{job.company.city.name}}</li>
+              <span class="badge badge-danger">
+                {{job.company.name}}
+              </span>
             </ul>
           {% endif %}
           <hr class="border-3">
-          <p>{{ com.description | safe | truncatechars:150}}</p>
+          <p>{{ job.description | safe | truncatechars:150}}</p>
             <hr class="border-3">
-            <p>requirements:</p>
-            {% for talent in com.talents %}
+            <h5>requirements:</h5>
+            {% for talent in job.talents %}
               <span style="color:#2a2b2d; font-size:0.8rem"> - {{talent}}</span><br>
             {% endfor %}
 
@@ -46,6 +49,7 @@
       </div>
       {% endfor %}
     </div>
+    {% include 'paginator.html' %}
   </div>
 </section>
 {% endblock %}

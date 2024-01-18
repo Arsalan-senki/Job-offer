@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<section class="section-hero overlay inner-page bg-image"
+    style="background-image: url('{% static 'images/hero_1.jpg' %}');" id="home-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-7">
+                <h1 class="text-white font-weight-bold">Companies management</h1>
+                <div class="custom-breadcrumbs">
+                    <a href="{% url 'website:home' %}">Home</a> <span class="mx-2 slash">/</span>
+                    <span class="text-white"><strong>Companies management</strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="site-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 mb-5">
+                {% include 'messages.html' %}
+
+                <div class="card">
+                {% if user.is_employer %}
+                    <h5 class="card-header text-center">My All Companies</h5>
+                    {% if companies %}
+                    <table class="table text-center mt-5">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Name</th>
+                                <th>Created date</th>
+                                <th>Telephone_number</th>
+                                <th>City</th>
+                                <th>Manager</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for company in companies %}
+                            <tr id="row_{{ company.id }}">
+                                <td class="text-center">{{ company.name }}</td>
+                                <td>{{ company.created_date | date:'M d, Y' }}</td>
+                                {% if company.telephone_number %}<td>{{company.telephone_number}}</td>{% else %}<td>no phone number</td>{% endif %}
+                                <td>{{company.city.name}}</td>
+                                <td>{{company.employer.first_name}} {{company.employer.last_name}}</td>
+                                <td>
+                                    <a class="btn btn-info btn-sm" href="{% url 'website:company-edit' company.id %}"
+                                        role="button">Edit</a>
+                                    <a href="{% url 'website:company-delete' company.id %}"><button
+                                        class="btn btn-danger btn-sm">Delete</button></a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p class="m-5">You have not any company yet !! <a href="{% url 'website:company-create' %}">Create a new
+                            one.</a></p>
+                    {% endif %}
+                {% endif %}
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/sweet-alert.js' %}"></script>
+<script src="{% static 'js/sweet-alert-ajax.js' %}"></script>
+{% endblock %}

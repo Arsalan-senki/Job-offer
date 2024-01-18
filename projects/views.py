@@ -1,6 +1,7 @@
 from collections import Counter
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
+from django.urls import reverse, reverse_lazy
 from .models import *
 from .form import *
 from django.db.models import Q
@@ -12,127 +13,213 @@ from django.core.paginator import Paginator
 # from .utils import create_user
 
 
+#home:
+def home_view(request):
 
-def home(request):
-    context = {'object' : None}
-    return render(request, 'home.html', context)
-
-
-def Jobs(request, pk):
-    # jobs = Job.objects.get(id=pk)
-    pass
+    return render(request, 'home.html')
 
 
-def company(request, pk):
-    company = Company.objects.get(id=pk)
-    messages = Message.objects.filter(company=company)
-    participants = company.participants.all()
-    if request.method == 'POST':
-        message = Message.objects.create(
-            user=request.user,
-            company=company,
-            body=request.POST.get('body')
-        )
-        return redirect('companies', pk=company.pk)
-    
-    context = {'company': company, 'messages': messages,'participants': participants}
-    return render(request, 'company.html', context)
-
-
-@login_required(login_url='login')
-@user_is_employer
-def createCompany(request):
+#company:
+@login_required(login_url='account:login')
+@if_user_is_employer
+def company_create_view(request):
 
     form = CompanyForm()
     if request.method == 'POST':
         form = CompanyForm(request.POST)
-        if form.is_valid():
-            company = form.save(commit=False)
-            company.employer = request.user
-            company.save()
-            return redirect('website:home')
+        # if form.is_valid():
+        #     company = form.save(commit=False)
+        #     company.employer = request.user
+        #     company.save()
+        #     return redirect('website:home')
     cities = Cities.objects.all()
 
     context = {'form': form, 'cities': cities}
-    return render(request, 'create-company.html', context)
+    return render(request, 'company-create.html', context)
+
+@login_required(login_url=('account:login'))
+@if_user_is_employer
+def company_manage_view(request):
+    """
+    """
+    companies = []
+    if request.user.is_employer:
+        companies = Company.objects.filter(employer=request.user.id)
+    context = {
+        'companies': companies,
+    }
+
+    return render(request, 'company-manager.html', context)
 
 
-@login_required(login_url='login')
-def updatecompany(request, pk):
-    company = Company.objects.get(id=pk)
-    form = CompanyForm(instance=company)
+@login_required(login_url=('account:login'))
+@if_user_is_employer
+def company_edit_view(request, pk):
 
-    if request.user != company.user:
-        return HttpResponse('You are not the user of this company')
+    company = get_object_or_404(Company, pk=pk, employer=request.user.id)
+    form = CompanyEditForm(request.POST or None, instance=company)
+    if form.is_valid():
+        instance = form.save(commit=False)
+        instance.save()
+        messages.success(request, 'Your Job Post Was Successfully Updated!')
+        return redirect('website:company-manage')
+    context = {
+        'form': form,
+        'city_name':company.city.name
+    }
 
-    if request.method == 'POST':
-        form = CompanyForm(request.POST, instance=company)
-        if form.is_valid():
-            form.save()
-            return redirect('website:home')
-
-    context = {'form': form}
-    return render(request, "Company-form.html", context)
-
-
-@login_required(login_url='login')
-def deletecompany(request, pk):
-    job = Job.objects.get(id=pk)
-    if request.method == 'POST':
-        job.delete()
-        return redirect('website:home')
-
-    return render(request, 'delete.html', {'obj': job})
+    return render(request, 'company-edit.html', context)
 
 
-@login_required(login_url='login')
-def deleteMessage(request, pk):
-    message = Message.objects.get(id=pk)
-    if request.user != message.user:
-        return HttpResponse("You are not allowed ")
+@login_required(login_url=('account:login'))
+@if_user_is_employer
+def company_delete_view(request, pk):
+    Company.objects.get(pk=pk).delete()
+    return redirect('website:company-manage')
 
-    if request.method == 'POST':
-        message.delete()
-        return redirect('website:home')
 
-    return render(request, 'delete.html', {'obj': message})
+
+#jobs:
+def job_list_view(request):
+    jobs = Job.objects.all()
+    for com in jobs:
+        com.talents = com.talents.strip().split(',')[:3]
+
+    paginator= Paginator(jobs, 6)
+    page_num = request.GET.get('page')
+    page_obj = paginator.get_page(page_num)
+    context = {'page_obj' : page_obj}
+    return render(request, 'job_list.html', context)
+
+
+def search_view(request):
+    jobs = Job.objects.order_by('created_date')
+    if 'q' in request.GET:
+        subject_city_company = request.GET['q']
+        if subject_city_company:
+            jobs = jobs.filter(
+                subject__icontains = subject_city_company) | jobs.filter(
+                company__city__name__icontains = subject_city_company) | jobs.filter(
+                company__name__icontains = subject_city_company)
+    for job in jobs : 
+        job.talents = job.talents.strip().split(',')[:3]
+    paginator= Paginator(jobs, 12)
+    page_num = request.GET.get('page')
+    page_obj = paginator.get_page(page_num)
+    context = {'page_obj' : page_obj}
+    return render(request, 'job_list.html', context)
 
 
 @login_required(login_url='account:login')
-@user_is_employer
-def createCommercials(request):
+def single_job_view(request, pk):
     if request.method == 'POST':
-        form = JobCommercialForm(request.POST)
+        pass
+    else :
+        if Job.objects.filter(pk=pk).exists():
+            job = Job.objects.get(pk=pk)
+            signed_details = None
+            if ApplyJob.objects.filter(user=request.user, job=job).exists():
+                signed_details = ApplyJob.objects.get(user=request.user, job=job)
+            print(signed_details, '--------------------------------')
+            context = {
+                'job' : job,
+                'signed_details' : signed_details}
+            return render(request, 'job-single.html', context)
+        else:
+            return redirect('website:home')
+
+
+@login_required(login_url='account:login')
+@if_user_is_employer
+def create_Job_view(request):
+    if request.method == 'POST':
+        form = JobForm(request.POST)
         if form.is_valid():
-            commercial = form.save(commit=False)
-            commercial.save()
+            job = form.save(commit=False)
+            job.manager= request.user
+            job.save()
             return redirect('website:home')
     
     else:
-        form = JobCommercialForm()
+        form = JobForm()
     companies = Company.objects.filter(employer= request.user)
+    if companies.count() == 0 : 
+        messages.error(request, 'You should create a company first')
+        return redirect('website:company-create')
     context = {'form': form, 'companies': companies}
-    return render(request, 'create-job.html', context)
+    return render(request, 'job-create.html', context)  
 
 
-def listCommercials(request):
-    commercials = JobCommercial.objects.all()
-    for com in commercials:
-        com.talents = com.talents.strip().split(',')[:3]
+@login_required(login_url=('account:login'))
+def jobs_manage_view(request):
+    """
+    """
+    jobs = []
+    applied_jobs = []
+    signs_count = {}
+    if request.user.is_employer:
+        jobs = Job.objects.filter(manager=request.user.id)
+        for job in jobs:
+            count = ApplyJob.objects.filter(job=job).count()
+            signs_count[job.id] = count
+    if not request.user.is_employer:
+        applied_jobs = ApplyJob.objects.filter(user=request.user.id)
+    context = {
+        'jobs': jobs,
+        'appliedjobs':applied_jobs,
+        'signs_count': signs_count
+    }
 
-    context = {'commercials' : commercials}
-    return render(request, 'commercials_list.html', context)
+    return render(request, 'job-manager.html', context)
 
 
-def searchview(request):
-    if 'q' in request.GET:
-        jobs = JobCommercial.objects.order_by('created_date')
-        job_title_or_city = request.GET['q']
-        if job_title_or_city:
-            jobs = jobs.filter(subject__icontains=job_title_or_city) | jobs.filter(company__city__name__icontains=job_title_or_city)
-            for job in jobs : 
-                job.talents = job.talents.strip().split(',')[:3]
-            context = {'commercials' : jobs}
-            return render(request, 'commercials_list.html', context)
-        else:
-            return redirect('website:home')
+@login_required(login_url=('account:login'))
+@if_user_is_employer
+def job_edit_view(request, pk):
+
+    job = get_object_or_404(Job, pk=pk, manager=request.user.id)
+    form = JobEditForm(request.POST or None, instance=job)
+    companies = Company.objects.filter(employer=request.user.id)
+    if form.is_valid():
+        instance = form.save(commit=False)
+        instance.save()
+        messages.success(request, 'Your Job Post Was Successfully Updated!')
+        return redirect('website:job-manage')
+    context = {
+        'companies' : companies,
+        'form': form,
+    }
+
+    return render(request, 'job-edit.html', context)
+
+
+@login_required(login_url=('account:login'))
+@if_user_is_employer
+def job_delete_view(request, pk):
+    Job.objects.get(pk=pk).delete()
+    return redirect('website:job-manage')
+
+
+@login_required(login_url=('account:login'))
+@if_user_is_employee
+def job_apply_view(request, pk):
+    if request.method == 'POST':
+        job = Job.objects.get(pk=pk)
+        ApplyJob.objects.get_or_create(user=request.user, job=job)
+        messages.success(request, 'Job applied successfully')
+        return redirect(reverse('website:job-single', kwargs={'pk': pk}))
+
+
+@login_required(login_url=('account:login'))
+@if_user_is_employee
+def job_remove_apply_view(request, pk):
+    if request.method == 'POST':
+        job = Job.objects.get(pk=pk)
+        ApplyJob.objects.filter(user=request.user, job=job).delete()                    
+        messages.success(request, 'Job applicant removed successfully') 
+        return redirect(reverse('website:job-single', kwargs={'pk': pk}))              
+
+
+
+
+

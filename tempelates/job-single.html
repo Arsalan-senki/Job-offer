@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<section class="section-hero overlay inner-page bg-image"
+  style="background-image: url('{% static 'images/hero_1.jpg' %}');" id="home-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-7">
+        <h1 class="text-white font-weight-bold">{{ job.subject }}</h1>
+        <div class="custom-breadcrumbs">
+          <a href="{% url 'website:home' %}">Home</a> <span class="mx-2 slash">/</span>
+          <a href="{% url 'website:job-list' %}">Job</a> <span class="mx-2 slash">/</span>
+          <span class="text-white"><strong>{{ job.subject }}</strong></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="site-section">
+  <div class="container">
+    {% include 'messages.html' %}
+
+    <div class="row align-items-center mb-5">
+      <div class="col-lg-8 mb-4 mb-lg-0">
+        <div class="d-flex align-items-center">
+
+          <div>
+            <h1 >{{ job.subject }}</h1>
+            <div>
+              <span class="ml-0 mr-2 mb-2"><span class="icon-briefcase mr-2"></span><a href="{% url 'website:search' %}?q={{ job.company.name }}">{{ job.company.name }}</a></span>
+              <span class="m-2"><span class="icon-room mr-2"></span><a href="{% url 'website:search' %}?q={{ job.company.city.name }}">{{ job.company.city.name }}</a></span>
+              <hr>
+              <div class="row">
+                <div class="col-lg-8">
+                  <div class="mb-5">
+                    <!-- <figure class="mb-5"><img src="images/job_single_img_1.jpg" alt="Image" class="img-fluid rounded"></figure> -->
+                    <h3 class="h5 d-flex align-items-center mb-4 text-truncate"><span class="icon-align-left mr-3"></span>Job
+                      Description</h3>
+                    {{ job.description | safe }}
+                  </div>
+                </div>
+              </div>
+              <div class="mb-5">
+                    <!-- <figure class="mb-5"><img src="images/job_single_img_1.jpg" alt="Image" class="img-fluid rounded"></figure> -->
+                    <h3 class="h5 d-flex align-items-center mb-4"><span class="icon-align-left mr-3"></span>Talents required</h3>
+                    {{ job.talents }}
+                  </div>
+            </div>
+          </div>
+        </div>
+      </div>
+ 
+      <div class="col-lg-4">
+        <div class="row">
+
+
+        <div class="col-7">
+        {% if user.is_authenticated and not user.is_employer %}
+            {% if signed_details %}
+                <span  class="btn btn-block btn-light btn-md">Already Applied</span>
+                <br>
+                <form action="{% url 'website:job-remove-apply' job.id %}" method="POST">
+                    {% csrf_token %}
+                        <input type="hidden" name="job" value="{{ job.id }}">
+                        <input type="submit" class="btn btn-block btn-danger btn-md" value="Remove" />
+                        </form>
+            {% else %}
+                <form action="{% url 'website:job-apply' job.id %}" method="POST">
+            {% csrf_token %}
+                <input type="hidden" name="job" value="{{ job.id }}">
+                <input type="submit" class="btn btn-block btn-primary btn-md" value="Apply Now" />
+                </form>
+            {% endif %}
+            
+          {% elif request.user.id == job.manager.id and user.is_employer %}
+
+                <a href="{% url 'website:job-edit' job.id %}" class="btn btn-block btn-primary btn-md">Edit</a>
+            {% endif %}
+
+          </div>
+        </div>
+      </div>
+
+
+
+      {% endblock %}
