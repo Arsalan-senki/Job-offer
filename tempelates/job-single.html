@@ -34,11 +34,11 @@
               <hr>
               <div class="row">
                 <div class="col-lg-8">
-                  <div class="mb-5">
+                  <div class="mb-5 " >
                     <!-- <figure class="mb-5"><img src="images/job_single_img_1.jpg" alt="Image" class="img-fluid rounded"></figure> -->
-                    <h3 class="h5 d-flex align-items-center mb-4 text-truncate"><span class="icon-align-left mr-3"></span>Job
+                    <h3 class="h5 d-flex align-items-center mb-4 text-truncate d-inline-block"><span class="icon-align-left mr-3 "></span>Job
                       Description</h3>
-                    {{ job.description | safe }}
+                    <p class="">{{ job.description | safe }}</p>
                   </div>
                 </div>
               </div>
@@ -47,6 +47,39 @@
                     <h3 class="h5 d-flex align-items-center mb-4"><span class="icon-align-left mr-3"></span>Talents required</h3>
                     {{ job.talents }}
                   </div>
+
+              <div class="mb-5">
+                {% if request.user.id == job.manager.id and user.is_employer %}
+                <h3 class="h5 d-flex align-items-center mb-4"><span class="icon-align-left mr-3"></span>Applied employees</h3>
+                {% if applied_employees %}
+                <table class="table text-center mt-5">
+                  <thead class="thead-dark">
+                      <tr>
+                          <th>Name</th>
+                          <th>Email</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                    {% for contract in applied_employees %}
+                    <tr id="row_{{ company.id }}">
+                        {% if contract %}
+                          <td class="text-center">{{contract.user.first_name}} {{contract.user.last_name}}</td>
+                          <td>{{ contract.user.email }}</td>
+                        {% else %}
+                        <td class="text-center">None</td>
+                        <td>None</td>
+                        {% endif %}
+                      </tr>
+
+                      {% endfor %}
+                  </tbody>
+              </table>
+              {% else %}
+                <p>no applied </p>  
+              {% endif %}
+
+                {% endif %}
+              </div>
             </div>
           </div>
         </div>
@@ -75,8 +108,7 @@
             {% endif %}
             
           {% elif request.user.id == job.manager.id and user.is_employer %}
-
-                <a href="{% url 'website:job-edit' job.id %}" class="btn btn-block btn-primary btn-md">Edit</a>
+          <a href="{% url 'website:job-edit' job.id %}" class="btn btn-block btn-primary btn-md">Edit</a>
             {% endif %}
 
           </div>

@@ -120,10 +120,11 @@ def single_job_view(request, pk):
             signed_details = None
             if ApplyJob.objects.filter(user=request.user, job=job).exists():
                 signed_details = ApplyJob.objects.get(user=request.user, job=job)
-            print(signed_details, '--------------------------------')
+            applied_employees = ApplyJob.objects.filter(job=job)
             context = {
                 'job' : job,
-                'signed_details' : signed_details}
+                'signed_details' : signed_details,
+                'applied_employees': applied_employees}
             return render(request, 'job-single.html', context)
         else:
             return redirect('website:home')
