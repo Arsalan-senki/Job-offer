@@ -27,11 +27,11 @@ def company_create_view(request):
     form = CompanyForm()
     if request.method == 'POST':
         form = CompanyForm(request.POST)
-        # if form.is_valid():
-        #     company = form.save(commit=False)
-        #     company.employer = request.user
-        #     company.save()
-        #     return redirect('website:home')
+        if form.is_valid():
+            company = form.save(commit=False)
+            company.employer = request.user
+            company.save()
+            return redirect('website:home')
     cities = Cities.objects.all()
 
     context = {'form': form, 'cities': cities}
